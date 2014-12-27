@@ -433,6 +433,7 @@ class ParcelGen:
         fun += self.tabify("JSONObject json = new JSONObject();\n")
         # Parcelable doesn't support boolean without help, JSON does
         NATIVES = self.NATIVE_TYPES + ["boolean", "String"]
+        NATIVE_BOXED = self.BOXED_TYPES + ["String"]
         for typ in self.get_types():
             list_type = self.list_type(typ)
             array_type = self.array_type(typ)
@@ -451,23 +452,22 @@ class ParcelGen:
                 if protect:
                     fun += self.tabify("if (%s != null) {\n" % self.memberize(member))
                     self.uptab()
-                if typ == "List<String>":
-                    fun += self.tabify("JSONArray array = new JSONArray();\n")
-                    fun += self.tabify("for (String temp: %s) {\n" % self.memberize(member))
-                    self.uptab()
-                    fun += self.tabify("array.put(temp);\n")
-                    self.downtab()
-                    fun += self.tabify("}\n")
-                    fun += self.tabify("json.put(\"%s\", array);\n" % key)
-                elif typ == "Date":
+                
+                if typ == "Date":
                     fun += self.tabify("json.put(\"%s\", %s.getTime() / 1000);\n" % (key, self.memberize(member)))
                 elif typ == "Uri":
                     fun += self.tabify("json.put(\"%s\", String.valueOf(%s));\n" % (key, self.memberize(member)))
                 elif list_type:
-                    fun += self.tabify("JSONArray array = new JSONArray();\n ")
-                    fun += self.tabify("for (%s temp: %s) {\n" % (list_type, self.memberize(member)))
+                    fun += self.tabify("JSONArray array = new JSONArray();\n")
+                    fun += self.tabify("for (%s temp: %s) {\n" % (key, self.memberize(member)))
                     self.uptab()
-                    fun += self.tabify("array.put(temp.writeJSON());\n")
+                    if list_type in BOXED_NATIVES:
+                        if list_type == "Byte":
+                            fun += self.tabify("array.put(temp & 0xFF);\n")
+                        else:
+                            fun += self.tabify("array.put(temp);\n")
+                    else:
+                        fun += self.tabify("array.put(temp.writeJSON());\n")
                     self.downtab()
                     fun += self.tabify("}\n")
                     fun += self.tabify("json.put(\"%s\", array);\n" % key)
@@ -485,9 +485,7 @@ class ParcelGen:
                         fun += self.tabify("array.put(temp.writeJSON());\n")
                     self.downtab()
                     fun += self.tabify("}\n")
-                    fun += self.tabify("json.put(\"%s\", %s);\n" %(key, "array"))
-                elif typ in NATIVES:
-                    fun += self.tabify("json.put(\"%s\", %s);\n" % (key, self.memberize(member)))
+                    fun += self.tabify("json.put(\"%s\", %s);\n" % (key, "array"))
                 else:
                     fun += self.tabify("json.put(\"%s\", %s.writeJSON());\n" % (key, self.memberize(member)))
                 if protect:
