@@ -117,7 +117,7 @@ Parcelgen supports writing and reading the following types to a Parcel:
 * **do_json**: Whether to generate the code to read this class from json. Leave this out or set it to false if you won't be using parcelgen's json reading/writing features.
 * **json_map**: A dictionary of instance variable to json property for properties that parcelgen cannot guess, such as `{"dateCreated": "time_created"}`.
 * **json_blacklist**: A list of properties which shouldn't be read from json. Use this for properties you want to passed in Parcels but not read from json.
-* **do_json_writer**: If enabled, Parcelgen will generate code to create a `JSONObject` mirroring what would have been read from JSON. **Note that this is currently experimental**, in particular, List-type properties are not supported.
+* **do_json_writer**: If enabled, Parcelgen will generate code to create a `JSONObject` mirroring what would have been read from JSON. 
 * **default_values**: An optional dictionary containing the value certain properties should be given by default. For instance useful to defaulting integer values to -1:
 
 ``` javascript
@@ -126,6 +126,7 @@ Parcelgen supports writing and reading the following types to a Parcel:
 }
 ```
 * **make_serializable**: Boolean indicating whether or not to mark the generated class(es) as implementing Serializable.
+* **extends**: The class that your new class should extend from.  If this class is not in the same package as your new class, the path name must be fully qualified.
 * **transient**: List of fields to be marked transient (you'll probably also want to declare make_serializable):
 
 ``` javascript

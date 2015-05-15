@@ -13,6 +13,7 @@ import sys, re, os.path, json
 class ParcelGen:
     BASE_IMPORTS = ("android.os.Parcel", "android.os.Parcelable")
     CLASS_STR = "/* package */ abstract class %s implements %s {"
+    CLASS_STR_EXTENDS = "/* package */ abstract class %s extends %s implements %s {"
     CHILD_CLASS_STR = "public class {0} extends _{0} {{"
     NATIVE_TYPES = ["string", "byte", "double", "float", "int", "long"]
     BOX_TYPES = ["Byte", "Boolean", "Float", "Integer", "Long", "Short", "Double"]
@@ -246,7 +247,11 @@ class ParcelGen:
         implements = "Parcelable"
         if self.make_serializable:
             implements += ", Serializable"
-        self.printtab((self.CLASS_STR % (class_name, implements)) + "\n")
+
+        if self.extends is not None:
+            self.printtab((self.CLASS_STR_EXTENDS % (class_name, self.extends, implements)) + "\n")
+        else:
+            self.printtab((self.CLASS_STR % (class_name, implements)) + "\n")
 
         # Protected member variables
         self.uptab()
@@ -511,6 +516,7 @@ def generate_class(filePath, output):
     do_json_writer = description.get("do_json_writer")
     json_blacklist = description.get("json_blacklist") or []
     serializables = description.get("serializables") or ()
+    extends = description.get("extends") or None
     if 'do_json' in description:
         do_json = description.get("do_json")
     else:
@@ -524,6 +530,7 @@ def generate_class(filePath, output):
     generator.do_json = do_json
     generator.do_json_writer = do_json_writer
     generator.make_serializable = make_serializable
+    generator.extends = extends
 
     generator.default_values = default_values
     if output:
